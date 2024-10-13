@@ -64,10 +64,12 @@ app.post("/login", (req, res) => {
       token: token,
     });
   }
-
-  res.json({
-    message: "login not successful",
-  });
+  else{
+    res.json({
+      message: "login not successful",
+    });
+  }
+  
   // console.log(users);
 });
 
@@ -89,9 +91,9 @@ function auth(req, res, next) {
       }
     }
     if (foundUser) {
-        res.send("User found!!");
+        next();
       } else {
-        res.send("User does not exist with this token.");
+        res.json("User does not exist with this token.");
       }
   } else {
     res.status(400).json({
@@ -101,7 +103,9 @@ function auth(req, res, next) {
 }
 
 app.get("/me",auth, function (req, res) {
-    res.send("Me endpoint!!")
+    res.json({
+      message:"me endpoint reached"
+    })
 });
 
 app.listen(3000);
