@@ -18,6 +18,10 @@ function genToken() {
   return token;
 }
 
+app.get('/',function(req,res){
+    res.sendFile(__dirname+'/public/index.html')
+})
+
 app.post("/signup", (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
@@ -81,7 +85,7 @@ app.get("/admin", function (req, res) {
 });
 
 function auth(req, res, next) {
-  let token = req.headers.authorisation;
+  let token = req.headers.token;
   if (token) {
     const decodedInfo = jwt.verify(token, JWT_SECRET);
     let foundUser = null;
@@ -91,6 +95,7 @@ function auth(req, res, next) {
       }
     }
     if (foundUser) {
+      req.username = decodedInfo.username;
         next();
       } else {
         res.json("User does not exist with this token.");
@@ -103,8 +108,10 @@ function auth(req, res, next) {
 }
 
 app.get("/me",auth, function (req, res) {
-    res.json({
-      message:"me endpoint reached"
+    console.log(req.username)
+    return res.json({
+      username: req.username,
+      message:"me endpoint reached finally"
     })
 });
 
