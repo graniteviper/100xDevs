@@ -7,17 +7,6 @@ const users = [];
 
 app.use(express.json());
 
-function genToken() {
-  const arr =
-    'qwertyuioplkjhgfdsazxcvbnmMNBVCXZASDFGHJKLPOIUYTREWQ/.,[]?><":}{-=+_*+/|';
-  let token = "";
-  for (let i = 0; i < 64; i++) {
-    let num = Math.floor(Math.random() * arr.length + 1);
-    token = token + arr[num];
-  }
-  return token;
-}
-
 app.get('/',function(req,res){
     res.sendFile(__dirname+'/public/index.html')
 })
