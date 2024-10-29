@@ -1,0 +1,35 @@
+.navbar-text{
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-text span{
+  color: red;
+  margin: 10px;
+}
+
+.main-form{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 50px;
+  align-items: center;
+}
+
+.main-form input{
+  text-align: center;
+  height: 30px;
+  width: 300px;
+  border-radius: 4px;
+}
+
+.main-form button{
+  width: 150px;
+  margin: 20px;
+  height: 25px;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+

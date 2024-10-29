@@ -1,0 +1,13 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+.main-container{
+    width: 100vw;
+    height:100vh;
+    background-color: bisque;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
