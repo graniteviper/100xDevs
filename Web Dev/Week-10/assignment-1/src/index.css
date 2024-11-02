@@ -1,0 +1,36 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+#appbar{
+    display: flex;
+    flex-direction: column;
+    background-color: aqua;
+    padding: 10px;
+}
+
+#appbar-box-1{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+#appbar-box-2{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+#variable-box{
+    display: flex;
+    align-items: center;
+}
+
+button{
+    height: 25px;
+    cursor: pointer;
+    margin-left: 70px;
+}
