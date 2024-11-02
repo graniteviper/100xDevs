@@ -4,12 +4,12 @@ import { formatTime, calculateTime } from "../utils/auxiliaryFunctions.js";
 
 const Timer = () => {
   const [editState, seteditState] = useState({ field: null, value: "" });
-  const [time, settime] = useState(10);
+  const [time, settime] = useState(0);
   const [timerIsRunning, settimerIsRunning] = useState(false);
 
   useEffect(() => {
     let clock = null;
-    console.log(time);
+    // console.log(time);
     if (timerIsRunning && time > 0) {
       clock = setInterval(() => {
         settime((prevTime) => prevTime - 1);
@@ -70,7 +70,7 @@ const Timer = () => {
               id="hours"
               placeholder="00"
               autoFocus
-              onBlur={handleEditField("hours")}
+              onBlur={()=>handleEditField("hours")}
             />
           ) : (
             <span onClick={() => handleEditField("hours")}>{hours}</span>
@@ -84,7 +84,7 @@ const Timer = () => {
               id="minutes"
               placeholder="00"
               autoFocus
-              onBlur={handleEditField("minutes")}
+              onBlur={()=>handleEditField("minutes")}
             />
           ) : (
             <span onClick={() => handleEditField("minutes")}>{minutes}</span>
@@ -98,7 +98,7 @@ const Timer = () => {
               id="seconds"
               placeholder="00"
               autoFocus
-              onBlur={handleEditField("seconds")}
+              onBlur={()=>handleEditField("seconds")}
             />
           ) : (
             <span onClick={() => handleEditField("seconds")}>{seconds}</span>
@@ -111,7 +111,7 @@ const Timer = () => {
         </button>
         <button
           onClick={() => {
-            settime(10);
+            settime(0);
             settimerIsRunning(false);
           }}
         >
@@ -213,7 +213,8 @@ export default Timer;
 
 //   // Format current time into hours, minutes, and seconds for display
 //   const { hours, minutes, seconds } = formatTime(time);
-
+//   console.log("Page rendered");
+  
 //   return (
 //     <div className={style.timerApp}>
 //       <div className={style.timerDisplay}>
