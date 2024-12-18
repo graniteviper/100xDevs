@@ -49,6 +49,8 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const express_1 = __importDefault(require("express"));
 const dotenv = __importStar(require("dotenv"));
 const bcrypt = __importStar(require("bcrypt"));
+const db_1 = require("./db");
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 dotenv.config({ path: ".env" });
 const app = (0, express_1.default)();
 const connectToDB = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -63,27 +65,79 @@ const connectToDB = () => __awaiter(void 0, void 0, void 0, function* () {
 });
 connectToDB();
 app.use(express_1.default.json());
-// @ts-ignore
-app.post("/app/v1/signup", (req, res) => {
+app.post("/app/v1/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let username = req.body.username;
     let password = req.body.password;
     if (!username || !password) {
-        return res.status(411).json({ message: "Please provide username and password." });
+        res.status(411).json({ message: "Please provide username and password." });
     }
     password = password.trim();
     username = username.trim();
-    bcrypt.hash(password, 10, (err, hash) => {
-        if (err) {
-            return res.status(500).json({
-                message: "An error occurred while hashing the password."
-            });
-        }
-        else {
-            res.send(hash);
-        }
-    });
-});
-app.post("/app/v1/login", (req, res) => { });
+    const userExists = yield db_1.userModel.findOne({ username: username });
+    if (userExists) {
+        res.status(403).json({
+            message: "User with this username already exists.",
+        });
+    }
+    else {
+        bcrypt.hash(password, 10, (err, hash) => __awaiter(void 0, void 0, void 0, function* () {
+            if (err) {
+                return res.status(500).json({
+                    message: "An error occurred while hashing the password.",
+                });
+            }
+            else {
+                const user = yield db_1.userModel.create({
+                    username: username,
+                    password: hash,
+                });
+                if (user) {
+                    return res.status(200).json({
+                        message: "User created successfully.",
+                        username: user.username,
+                    });
+                }
+                else {
+                    return res.status(500).json({
+                        message: "An error occurred while creating the user.",
+                        user: user,
+                    });
+                }
+            }
+        }));
+    }
+}));
+app.post("/app/v1/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let username = req.body.username;
+    let password = req.body.password;
+    if (!username || !password) {
+        res.status(411).json({ message: "Please provide username and password." });
+    }
+    password = password.trim();
+    username = username.trim();
+    const user = yield db_1.userModel.findOne({ username: username });
+    if (!user) {
+        res.status(404).json({ message: "User not found." });
+    }
+    else {
+        bcrypt.compare(password, user.password, (err, isMatch) => __awaiter(void 0, void 0, void 0, function* () {
+            if (err) {
+                return res.status(500).json({
+                    message: "The password is wrong.",
+                });
+            }
+            else {
+                if (isMatch) {
+                    const token = jsonwebtoken_1.default.sign({ username: user.username }, process.env.JWT_SECRET, { expiresIn: '24h' });
+                    return res.send({
+                        token: token,
+                        user: user.username
+                    });
+                }
+            }
+        }));
+    }
+}));
 app.post("/app/v1/createContent", (req, res) => { });
 app.delete("/app/v1/deleteContent", (req, res) => { });
 app.post("/app/v1/shareContent", (req, res) => { });
