@@ -51,6 +51,7 @@ const dotenv = __importStar(require("dotenv"));
 const bcrypt = __importStar(require("bcrypt"));
 const db_1 = require("./db");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const middleware_1 = require("./middleware");
 dotenv.config({ path: ".env" });
 const app = (0, express_1.default)();
 const connectToDB = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -120,26 +121,92 @@ app.post("/app/v1/login", (req, res) => __awaiter(void 0, void 0, void 0, functi
         res.status(404).json({ message: "User not found." });
     }
     else {
-        bcrypt.compare(password, user.password, (err, isMatch) => __awaiter(void 0, void 0, void 0, function* () {
-            if (err) {
-                return res.status(500).json({
-                    message: "The password is wrong.",
-                });
-            }
-            else {
-                if (isMatch) {
-                    const token = jsonwebtoken_1.default.sign({ username: user.username }, process.env.JWT_SECRET, { expiresIn: '24h' });
-                    return res.send({
-                        token: token,
-                        user: user.username
+        try {
+            bcrypt.compare(password, user.password, (err, isMatch) => __awaiter(void 0, void 0, void 0, function* () {
+                if (err) {
+                    return res.status(403).json({
+                        message: "The password is not correct.",
                     });
                 }
-            }
-        }));
+                else {
+                    if (isMatch) {
+                        const token = jsonwebtoken_1.default.sign({ username: user.username }, process.env.JWT_SECRET, { expiresIn: "24h" });
+                        return res.status(200).json({
+                            token: token,
+                            username: user.username,
+                        });
+                    }
+                }
+            }));
+        }
+        catch (error) {
+            console.log(error);
+            res.status(500).json({ message: "An error occurred." });
+        }
     }
 }));
-app.post("/app/v1/createContent", (req, res) => { });
-app.delete("/app/v1/deleteContent", (req, res) => { });
+// @ts-ignore
+app.post("/app/v1/createContent", middleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const link = req.body.link;
+    const type = req.body.type;
+    const title = req.body.title;
+    const userId = req.body.userId;
+    try {
+        yield db_1.contentModel.create({
+            link: link,
+            type: type,
+            title: title,
+            userId: userId,
+            tags: []
+        });
+        return res.status(200).json({
+            message: "Content Created."
+        });
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(400).json({
+            message: "Unexpected Error Occurred."
+        });
+    }
+}));
+//@ts-ignore
+app.get("/app/v1/getContent", middleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.body.userId;
+    try {
+        const contents = yield db_1.contentModel.find({ userId: id }).populate("User", 'username');
+        if (contents) {
+            return res.status(200).json({
+                message: "Data Sent!!",
+                contents: contents
+            });
+        }
+        else {
+            res.status(500).json({
+                message: "Error in fetching data."
+            });
+        }
+    }
+    catch (err) {
+        console.log("Error in getContent: " + err);
+        res.status(400).json({
+            message: "OOPS!! Server Crashed Unexpectedly."
+        });
+    }
+}));
+//@ts-ignore
+app.delete("/app/v1/deleteContent", middleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.body.userId;
+    const contentId = req.body.contentId;
+    yield db_1.contentModel.deleteOne({ _id: contentId, userId: id }).then(() => {
+        res.status(200).json({
+            message: "Data deleted Successfully.",
+        });
+    }).catch((err) => {
+        console.log("error");
+        res.status(500).json("Error While Deleting.");
+    });
+}));
 app.post("/app/v1/shareContent", (req, res) => { });
 app.get("/app/v1/shareContentContent", (req, res) => { });
 app.listen(3000, () => {

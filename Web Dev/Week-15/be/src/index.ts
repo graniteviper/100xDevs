@@ -2,9 +2,10 @@ import mongoose from "mongoose";
 import express from "express";
 import * as dotenv from "dotenv";
 import * as bcrypt from "bcrypt";
-import { userModel } from "./db";
+import { contentModel, userModel } from "./db";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
+import { userMiddleware } from "./middleware";
 dotenv.config({ path: ".env" });
 const app = express();
 
@@ -85,8 +86,8 @@ app.post("/app/v1/login", async (req, res) => {
     try {
       bcrypt.compare(password, user.password, async (err, isMatch) => {
         if (err) {
-          return res.status(500).json({
-            message: "The password is wrong.",
+          return res.status(403).json({
+            message: "The password is not correct.",
           });
         } else {
           if (isMatch) {
@@ -95,9 +96,9 @@ app.post("/app/v1/login", async (req, res) => {
               process.env.JWT_SECRET!,
               { expiresIn: "24h" }
             );
-            return res.send({
+            return res.status(200).json({
               token: token,
-              user: user.username,
+              username: user.username,
             });
           }
         }
@@ -109,9 +110,68 @@ app.post("/app/v1/login", async (req, res) => {
   }
 });
 
-app.post("/app/v1/createContent", (req, res) => {});
+// @ts-ignore
+app.post("/app/v1/createContent",userMiddleware,async (req, res) => {
+  const link  = req.body.link;
+  const type = req.body.type;
+  const title = req.body.title;
+  const userId = req.body.userId;
+  try{
+    await contentModel.create({
+      link: link,
+      type:type,
+      title: title,
+      userId: userId,
+      tags:[]
+    });
 
-app.delete("/app/v1/deleteContent", (req, res) => {});
+    return res.status(200).json({
+      message:"Content Created."
+    })
+  }catch(error){
+    console.log(error);
+    return res.status(400).json({
+      message:"Unexpected Error Occurred."
+    })
+  }
+});
+
+//@ts-ignore
+app.get("/app/v1/getContent",userMiddleware,async (req,res)=>{
+  const id = req.body.userId;
+  try{
+    const contents = await contentModel.find({userId:id}).populate("User",'username')
+    if(contents){
+      return res.status(200).json({
+        message: "Data Sent!!",
+        contents: contents
+      })
+    } else{
+      res.status(500).json({
+        message:"Error in fetching data."
+      })
+    }
+  } catch(err){
+    console.log("Error in getContent: " + err);
+    res.status(400).json({
+      message:"OOPS!! Server Crashed Unexpectedly."
+    })
+  } 
+})
+
+//@ts-ignore
+app.delete("/app/v1/deleteContent",userMiddleware, async (req, res) => {
+  const id = req.body.userId;
+  const contentId = req.body.contentId;
+  await contentModel.deleteOne({_id:contentId,userId:id}).then(()=>{
+    res.status(200).json({
+      message: "Data deleted Successfully.",
+    })
+  }).catch((err)=>{
+    console.log("error");
+    res.status(500).json("Error While Deleting.")
+  })
+});
 
 app.post("/app/v1/shareContent", (req, res) => {});
 
