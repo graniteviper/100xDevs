@@ -5,7 +5,8 @@ const contentTypes = {
     Blog: 'blog',
     Video: 'video',
     Image: 'image',
-    link: 'link'
+    link: 'link',
+    other: 'other'
 }
 
 const userSchema = new mongoose.Schema({
@@ -19,6 +20,14 @@ const userSchema = new mongoose.Schema({
         required: true
     }
 },{timestamps:true});
+export const userModel = mongoose.model("User",userSchema);
+
+const tagSchema = new mongoose.Schema({
+    title: String,
+},{
+    timestamps:true
+});
+export const tagModel = mongoose.model("Tags",tagSchema);
 
 const contentSchema = new mongoose.Schema({
     link: String,
@@ -26,10 +35,14 @@ const contentSchema = new mongoose.Schema({
         type: String,
         enum: Object.values(contentTypes)
     },
-    title: String,
+    title: {
+        type: String,
+        required: true
+    },
     userId:{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
+        ref: "User",
+        required: true,
     },
     tags:[{
         type: mongoose.Schema.Types.ObjectId,
@@ -37,11 +50,7 @@ const contentSchema = new mongoose.Schema({
     }]
 },{timestamps:true});
 
-const tagSchema = new mongoose.Schema({
-    title: String,
-},{
-    timestamps:true
-});
+
 
 const linkSchema = new mongoose.Schema({
     hash: String,
@@ -51,8 +60,6 @@ const linkSchema = new mongoose.Schema({
     }
 },{timestamps:true});
 
-export const userModel = mongoose.model("User",userSchema);
 export const contentModel = mongoose.model("Content",contentSchema);
-export const tagModel = mongoose.model("Tags",tagSchema);
 export const linkModel = mongoose.model("Links",linkSchema);
 

@@ -130,7 +130,7 @@ app.post("/app/v1/login", (req, res) => __awaiter(void 0, void 0, void 0, functi
                 }
                 else {
                     if (isMatch) {
-                        const token = jsonwebtoken_1.default.sign({ username: user.username }, process.env.JWT_SECRET, { expiresIn: "24h" });
+                        const token = jsonwebtoken_1.default.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "24h" });
                         return res.status(200).json({
                             token: token,
                             username: user.username,
@@ -150,7 +150,8 @@ app.post("/app/v1/createContent", middleware_1.userMiddleware, (req, res) => __a
     const link = req.body.link;
     const type = req.body.type;
     const title = req.body.title;
-    const userId = req.body.userId;
+    //@ts-ignore
+    const userId = req.userId;
     try {
         yield db_1.contentModel.create({
             link: link,
@@ -172,9 +173,10 @@ app.post("/app/v1/createContent", middleware_1.userMiddleware, (req, res) => __a
 }));
 //@ts-ignore
 app.get("/app/v1/getContent", middleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = req.body.userId;
+    //@ts-ignore
+    const id = req.userId;
     try {
-        const contents = yield db_1.contentModel.find({ userId: id }).populate("User", 'username');
+        const contents = yield db_1.contentModel.find({ userId: id }).populate("userId", 'username');
         if (contents) {
             return res.status(200).json({
                 message: "Data Sent!!",
@@ -196,7 +198,8 @@ app.get("/app/v1/getContent", middleware_1.userMiddleware, (req, res) => __await
 }));
 //@ts-ignore
 app.delete("/app/v1/deleteContent", middleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = req.body.userId;
+    //@ts-ignore
+    const id = req.userId;
     const contentId = req.body.contentId;
     yield db_1.contentModel.deleteOne({ _id: contentId, userId: id }).then(() => {
         res.status(200).json({
@@ -207,8 +210,55 @@ app.delete("/app/v1/deleteContent", middleware_1.userMiddleware, (req, res) => _
         res.status(500).json("Error While Deleting.");
     });
 }));
-app.post("/app/v1/shareContent", (req, res) => { });
-app.get("/app/v1/shareContentContent", (req, res) => { });
+//@ts-ignore
+app.post("/app/v1/shareContent", middleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const contentId = req.body._id;
+    const userId = req.body.userId;
+    const user = yield db_1.userModel.findById(userId);
+    if (!user) {
+        return res.status(404).json({
+            message: "User does not exist.",
+        });
+    }
+    const content = yield db_1.contentModel.findById(contentId);
+    if (!content) {
+        return res.status(404).json({
+            message: "Error while sharing."
+        });
+    }
+    return res.status(200).json({
+        message: "The content can be shared.",
+        contentId
+    });
+}));
+app.get("/app/v1/shareContent/:shareLink", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const contentId = req.body.contentId;
+    if (!contentId) {
+        res.json(404).json({
+            message: "Content ID not recieved."
+        });
+    }
+    try {
+        const content = yield db_1.contentModel.findById(contentId);
+        if (content) {
+            res.status(200).json({
+                message: "Content sent.",
+                content
+            });
+        }
+        else {
+            res.status(400).json({
+                message: "Link is invalid."
+            });
+        }
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).json({
+            message: "Unexpected Error Occurred."
+        });
+    }
+}));
 app.listen(3000, () => {
     console.log("The server is listening at the port 3000.");
 });

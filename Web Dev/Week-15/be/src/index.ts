@@ -92,7 +92,7 @@ app.post("/app/v1/login", async (req, res) => {
         } else {
           if (isMatch) {
             const token = jwt.sign(
-              { username: user.username },
+              { id: user._id },
               process.env.JWT_SECRET!,
               { expiresIn: "24h" }
             );
@@ -115,7 +115,9 @@ app.post("/app/v1/createContent",userMiddleware,async (req, res) => {
   const link  = req.body.link;
   const type = req.body.type;
   const title = req.body.title;
-  const userId = req.body.userId;
+  //@ts-ignore
+  const userId = req.userId;
+  
   try{
     await contentModel.create({
       link: link,
@@ -138,9 +140,10 @@ app.post("/app/v1/createContent",userMiddleware,async (req, res) => {
 
 //@ts-ignore
 app.get("/app/v1/getContent",userMiddleware,async (req,res)=>{
-  const id = req.body.userId;
+  //@ts-ignore
+  const id = req.userId;
   try{
-    const contents = await contentModel.find({userId:id}).populate("User",'username')
+    const contents = await contentModel.find({userId:id}).populate("userId",'username')
     if(contents){
       return res.status(200).json({
         message: "Data Sent!!",
@@ -161,7 +164,8 @@ app.get("/app/v1/getContent",userMiddleware,async (req,res)=>{
 
 //@ts-ignore
 app.delete("/app/v1/deleteContent",userMiddleware, async (req, res) => {
-  const id = req.body.userId;
+  //@ts-ignore
+  const id = req.userId;
   const contentId = req.body.contentId;
   await contentModel.deleteOne({_id:contentId,userId:id}).then(()=>{
     res.status(200).json({
@@ -173,9 +177,56 @@ app.delete("/app/v1/deleteContent",userMiddleware, async (req, res) => {
   })
 });
 
-app.post("/app/v1/shareContent", (req, res) => {});
 
-app.get("/app/v1/shareContentContent", (req, res) => {});
+//@ts-ignore
+app.post("/app/v1/shareContent",userMiddleware,async (req, res) => {
+  const contentId: string = req.body._id;
+  const userId: string = req.body.userId;
+
+  const user = await userModel.findById(userId);
+  if(!user){
+    return res.status(404).json({
+      message:"User does not exist.",
+    })
+  }
+  const content = await contentModel.findById(contentId);
+  if(!content){
+    return res.status(404).json({
+      message:"Error while sharing."
+    })
+  }
+  return res.status(200).json({
+    message:"The content can be shared.",
+    contentId
+  })
+});
+
+app.get("/app/v1/shareContent/:shareLink",async (req, res) => {
+  const contentId = req.body.contentId;
+  if(!contentId){
+    res.json(404).json({
+      message: "Content ID not recieved."
+    })
+  }
+  try {
+    const content = await contentModel.findById(contentId);
+  if(content){
+    res.status(200).json({
+      message:"Content sent.",
+      content
+    })
+  } else{
+    res.status(400).json({
+      message: "Link is invalid."
+    })
+  }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message:"Unexpected Error Occurred."
+    })
+  }
+});
 
 app.listen(3000, () => {
   console.log("The server is listening at the port 3000.");
