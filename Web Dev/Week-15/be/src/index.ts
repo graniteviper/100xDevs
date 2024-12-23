@@ -180,9 +180,9 @@ app.delete("/app/v1/deleteContent",userMiddleware, async (req, res) => {
 
 //@ts-ignore
 app.post("/app/v1/shareContent",userMiddleware,async (req, res) => {
-  const contentId: string = req.body._id;
-  const userId: string = req.body.userId;
-
+  const contentId: string = req.body.contentId;
+  //@ts-ignore
+  const userId: string = req.userId;
   const user = await userModel.findById(userId);
   if(!user){
     return res.status(404).json({

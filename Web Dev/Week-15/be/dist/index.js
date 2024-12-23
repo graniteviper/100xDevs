@@ -212,8 +212,9 @@ app.delete("/app/v1/deleteContent", middleware_1.userMiddleware, (req, res) => _
 }));
 //@ts-ignore
 app.post("/app/v1/shareContent", middleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const contentId = req.body._id;
-    const userId = req.body.userId;
+    const contentId = req.body.contentId;
+    //@ts-ignore
+    const userId = req.userId;
     const user = yield db_1.userModel.findById(userId);
     if (!user) {
         return res.status(404).json({
