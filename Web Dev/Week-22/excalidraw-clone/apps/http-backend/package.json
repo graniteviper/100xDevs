@@ -4,8 +4,12 @@
   "description": "",
   "main": "index.js",
   "devDependencies": {
-    "@repo/typescript-config": "workspace:*"
+    "@repo/backend-common": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.7"
   },
+  "type": "module",
   "scripts": {
     "dev": "npm run build && npm run start",
     "start": "node ./dist/index.js",
@@ -15,7 +19,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/express": "^5.0.0",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "@repo/database": "workspace:*"
   }
 }
